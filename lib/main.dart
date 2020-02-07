@@ -247,7 +247,7 @@ class RandomWordsState extends State<RandomWords> {
                       padding: const EdgeInsets.symmetric(vertical: 5.0),
                     ),
                     SwitchListTile(
-                      title: new Text("Is Cap 1 placed?"),
+                      title: new Text("Is Cap placed?"),
                       value: gameData._isCaped1,
                       onChanged: (newVal) {
                         gameData._isCaped1 = newVal;
@@ -267,31 +267,6 @@ class RandomWordsState extends State<RandomWords> {
                           )
                       ),
                       visible: gameData._isCaped1,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5.0),
-                    ),
-                    SwitchListTile(
-                      title: new Text("Is Cap 2 placed?"),
-                      value: gameData._isCaped2,
-                      onChanged: (newVal) {
-                        gameData._isCaped2 = newVal;
-                      },
-                    ),
-                    Visibility(
-                      child: TextField(
-                          onSubmitted: (String value) {
-                            setState(() {
-                              gameData._stonesInTallestSkyscraper = int.parse(value);
-                            });
-                          },
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: "Number of stones under Cap 2",
-                          )
-                      ),
-                      visible: gameData._isCaped2,
                     ),
 
                   ],
@@ -374,6 +349,9 @@ class RandomWordsState extends State<RandomWords> {
               ]),
           onTap: () {
             _pushTeamData(teamData);
+          },
+          onLongPress: () {
+            _teamData.remove(teamData);
           },
     ));
   }
