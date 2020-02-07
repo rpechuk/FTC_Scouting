@@ -209,8 +209,6 @@ class TeamSelector extends StatefulWidget {
 class ScoreEditorState extends State<ScoreEditor> {
   GameData _gameData;
 
-  ScoreEditorState(GameData gameData) {_gameData = gameData;}
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -377,10 +375,8 @@ class ScoreEditorState extends State<ScoreEditor> {
 }
 
 class ScoreEditor extends StatefulWidget {
-  GameData _gameData;
-  ScoreEditor(GameData gameData) {_gameData = gameData;}
   @override
-  ScoreEditorState createState() => ScoreEditorState(_gameData);
+  ScoreEditorState createState() => ScoreEditorState();
 }
 
 class MyApp extends StatelessWidget {
