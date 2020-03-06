@@ -1,7 +1,27 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(MyApp());
+// chang contents of this class to accept "app key"
+class SharedPref {
+  read(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(key);
+  }
+
+  save(String key, value) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(key, value);
+  }
+
+  change() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool('first_time', false);
+  }
+
+}
 
 class GameData {
   int _matchNumber;
@@ -38,28 +58,96 @@ class GameData {
   set setReposition(bool reposition) => this._isRepositioned = reposition;
   String get getMatchName => this._matchNumber == 0 ? "Before Match" : "Qualification" + this._matchNumber.toString();
 
+  Map<String, dynamic> toJson() => {
+    'autoSkystones': _autoSkystones.toString(),
+    'autoStones': _autoStones.toString(),
+    'isRepositioned': _isRepositioned.toString(),
+    'autoStonesPlaced': _autoStonesPlaced.toString(),
+    'isNavigated': _isNavigated.toString(),
+    'stonesDelivered': _stonesDelivered.toString(),
+    'stonesPlaced': _stonesPlaced.toString(),
+    'stonesInTallestSkyscraper': _stonesInTallestSkyscraper.toString(),
+    'isCaped1': _isCaped1.toString(),
+    'levelsUnderCap1': _levelsUnderCap1.toString(),
+    'isCaped2': _isCaped2.toString(),
+    'levelsUnderCap2': _levelsUnderCap2.toString(),
+    'isFoundationMoved': _isFoundationMoved.toString(),
+    'isParked': _isParked.toString(),
+  };
+// ToDo: FIX ME int.parse is being wierd
+//  GameData.fromJson(Map<String, dynamic> json)
+//  : _autoSkystones = int.parse(json['autoSkystones']),
+//        _autoStones = int.parse(json['autoStones']),
+//        _isRepositioned = (json['isRepositioned']).toString().toLowerCase() == 'true',
+//        _autoStonesPlaced = int.parse(json['autoStonesPlaced']),
+//        _isNavigated = (json['isNavigated']).toString().toLowerCase() == 'true',
+//        _stonesDelivered = int.parse(json['stonesDelivered']),
+//        _stonesPlaced = int.parse(json['stonesPlaced']),
+//        _stonesInTallestSkyscraper = int.parse(json['stonesInTallestSkyscraper']),
+//        _isCaped1 = (json['isCaped1']).toString().toLowerCase() == 'true',
+//        _levelsUnderCap1 = int.parse(json['levelsUnderCap1']),
+//        _isCaped2 = (json['isCaped2']).toString().toLowerCase() == 'true',
+//        _levelsUnderCap2 = int.parse(json['levelsUnderCap2']),
+//        _stonesInTallestSkyscraper = int.parse(json['stonesInTallestSkyscraper']),
+//        _isFoundationMoved = (json['isFoundationMoved']).toString().toLowerCase() == 'true',
+//        _isParked = (json['isParked']).toString().toLowerCase() == 'true';
 }
 
 class TeamData {
   int _teamNumber;
   final _gameData = <GameData>[];
 
-  TeamData(int teamNumber){
+  TeamData(int teamNumber) {
     this._teamNumber = teamNumber;
-    for(int i = 0; i < 6; i++){
+    for (int i = 0; i < 6; i++) {
       _gameData.add(new GameData(i));
     }
   }
-
   int get getTeamNumber => this._teamNumber;
 
   String get getTeamName => this._teamNumber.toString();
 
   List<GameData> get getGameDataArray => this._gameData;
+
+  Map<String, dynamic> toJson() => {
+    'teamNumber' : _teamNumber.toString(),
+    'm0' : json.encode(_gameData[0]),
+    'm1' : json.encode(_gameData[1]),
+    'm2' : json.encode(_gameData[2]),
+    'm3' : json.encode(_gameData[3]),
+    'm4' : json.encode(_gameData[4]),
+    'm5' : json.encode(_gameData[5]),
+  };
 }
 
 class TeamSelectorState extends State<TeamSelector> {
   final _teamData = <TeamData>[];
+  SharedPref sharedPref = SharedPref();
+
+  startTime() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool firstTime = prefs.getBool('first_time');
+
+    if (firstTime != null && !firstTime) {// Not first time
+    } else {// First time
+      navigationPageWel();
+    }
+  }
+
+  void navigationPageHome() {
+    Navigator.of(context).pushReplacementNamed('/HomePage');
+  }
+
+  void navigationPageWel() {
+    Navigator.of(context).pushReplacementNamed('/WelcomePage');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    startTime();
+  }
+
   final _biggerFont = const TextStyle(fontSize: 18.0);
   bool val = false;
 
@@ -205,9 +293,45 @@ class TeamSelector extends StatefulWidget {
   TeamSelectorState createState() => TeamSelectorState();
 }
 
+class KeySelector extends StatefulWidget {
+  @override
+  KeySelectorState createState() => KeySelectorState();
+}
+
+class KeySelectorState extends State<KeySelector> {
+  SharedPref sharedPref = SharedPref();
+
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Key'),
+      ),
+      body: TextField(
+          onSubmitted: (String value) {
+            sharedPref.change();
+            if(sharedPref.read(value) != null){
+              //enter string into the database/access value from here
+            } else {
+              sharedPref.save(value, value);
+              //make new colum in database
+            }
+            Navigator.pushNamed(context, '/HomePage');
+          },
+          decoration: InputDecoration(
+              hintText: "Enter Key",
+              icon: Icon(Icons.vpn_key)
+          )
+      ),
+    );
+  }
+}
 
 class ScoreEditorState extends State<ScoreEditor> {
   GameData _gameData;
+
+  ScoreEditorState (GameData gameData){
+        _gameData = gameData;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -375,12 +499,17 @@ class ScoreEditorState extends State<ScoreEditor> {
 }
 
 class ScoreEditor extends StatefulWidget {
+  GameData _gameData;
+  ScoreEditor(GameData gameData){
+    _gameData = gameData;
+  }
   @override
-  ScoreEditorState createState() => ScoreEditorState();
+  ScoreEditorState createState() => ScoreEditorState(_gameData);
 }
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -388,7 +517,11 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: Colors.blueAccent
       ),
-      home: TeamSelector(),
+      home: new TeamSelector(),
+      routes: <String, WidgetBuilder>{
+        '/HomePage': (BuildContext context) => new TeamSelector(),
+        '/WelcomePage': (BuildContext context) => new KeySelector()
+      },
     );
   }
 }
